@@ -1,0 +1,67 @@
+package com.example.rest.Models;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import java.util.List;
+
+@Entity
+@Table(name = "course")
+public class Course {
+
+    // Primary key
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "name")
+    private String name;
+
+    @Column(name = "weeklyHours")
+    private int weeklyHours;
+
+    @ManyToMany(mappedBy = "courses")
+    @JsonIgnore
+    private List<Student> students;
+
+    public Course() {}
+
+    public Course(Long id, String name, int weeklyHours) {
+        this.id = id;
+        this.name = name;
+        this.weeklyHours = weeklyHours;
+    }
+
+    // Getters and Setters
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getWeeklyHours() {
+        return weeklyHours;
+    }
+
+    public void setWeeklyHours(int weeklyHours) {
+        this.weeklyHours = weeklyHours;
+    }
+
+    public List<Student> getStudents() {
+        return students;
+    }
+
+    public void setStudents(List<Student> students) {
+        this.students = students;
+    }
+}
