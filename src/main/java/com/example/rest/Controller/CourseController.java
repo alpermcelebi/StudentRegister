@@ -1,6 +1,7 @@
 package com.example.rest.Controller;
 
 import com.example.rest.Models.Course;
+import com.example.rest.Models.ErrorResponse;
 import com.example.rest.Models.Student;
 import com.example.rest.Services.CourseService;
 import jakarta.persistence.EntityNotFoundException;
@@ -15,7 +16,6 @@ import java.util.List;
 @RequestMapping("/courses")
 public class CourseController {
 
-
     private final CourseService courseService;
 
     @Autowired
@@ -24,52 +24,84 @@ public class CourseController {
     }
 
     @PostMapping
-    public ResponseEntity<Course> createCourse(@RequestBody Course course) {
-        return ResponseEntity.ok(courseService.addCourse(course));
+    public ResponseEntity<?> createCourse(@RequestBody Course course) {
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED).body(courseService.addCourse(course));
+        } catch (Exception e) {
+            ErrorResponse errorResponse = new ErrorResponse("Failed to create course", HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getCourseById(@PathVariable Long id) {
-
-        Course course = courseService.getCourseById(id);
-
-        if (course != null) {
+        try {
+            Course course = courseService.getCourseById(id);
             return ResponseEntity.ok(course);
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Course not found");
+        } catch (EntityNotFoundException e) {
+            ErrorResponse errorResponse = new ErrorResponse("Course not found", HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        } catch (Exception e) {
+            ErrorResponse errorResponse = new ErrorResponse("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
-
     }
+
     @GetMapping("/{id}/students")
     public ResponseEntity<?> getStudentsByCourseId(@PathVariable Long id) {
         try {
             List<Student> students = courseService.getStudentsByCourseId(id);
             return ResponseEntity.ok(students);
         } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            ErrorResponse errorResponse = new ErrorResponse("Course not found", HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        } catch (Exception e) {
+            ErrorResponse errorResponse = new ErrorResponse("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
+
     @GetMapping
-    public List<Course> getAllCourses(){
-        return courseService.getAllCourses();
+    public ResponseEntity<?> getAllCourses() {
+        try {
+            List<Course> courses = courseService.getAllCourses();
+            return ResponseEntity.ok(courses);
+        } catch (Exception e) {
+            ErrorResponse errorResponse = new ErrorResponse("Failed to retrieve courses", HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
     }
 
-	@PutMapping("/{id}")
-	public Course updateCourse(@PathVariable Long id, @RequestBody Course updatedCourse) {
-		return courseService.updateCourse(id, updatedCourse);
-	}
-
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateCourse(@PathVariable Long id, @RequestBody Course updatedCourse) {
+        try {
+            Course course = courseService.updateCourse(id, updatedCourse);
+            return ResponseEntity.ok(course);
+        } catch (EntityNotFoundException e) {
+            ErrorResponse errorResponse = new ErrorResponse("Course not found", HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        } catch (Exception e) {
+            ErrorResponse errorResponse = new ErrorResponse("Failed to update course", HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteCourse(@PathVariable Long id) {
+    public ResponseEntity<?> deleteCourse(@PathVariable Long id) {
         try {
             courseService.deleteCourse(id);
             return ResponseEntity.ok("Course deleted successfully");
         } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            ErrorResponse errorResponse = new ErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred");
+            ErrorResponse errorResponse = new ErrorResponse("Failed to delete course", HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
-
+    @DeleteMapping("/cache")
+    public ResponseEntity<String> deleteCache(){
+        courseService.deleteCache();
+        return ResponseEntity.ok("Cache Deleted");
+    }
 }

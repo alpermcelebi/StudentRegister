@@ -1,12 +1,14 @@
 package com.example.rest.Models;
-
+import java.io.Serial;
+import java.io.Serializable;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.List;
 
 @Entity
 @Table(name = "course")
-public class Course {
+public class Course implements Serializable {
+
 
     // Primary key
     @Id

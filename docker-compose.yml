@@ -7,18 +7,16 @@ services:
     ports:
       - "3307:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: alper123
       MYSQL_DATABASE: crudusers
       MYSQL_USER: alper
       MYSQL_PASSWORD: alper123
     volumes:
       - mysql_data:/var/lib/mysql
 
-
-
   redis:
     image: redis:latest
-    container_name: redis-db
+    container_name: redis
     ports:
       - "6379:6379"
 
@@ -33,12 +31,12 @@ services:
       RABBITMQ_DEFAULT_PASS: guest
 
   app:
-    image: your-java-app:latest
+    image: java-app
     container_name: spring-app
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/crudusers
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/crudusers
       SPRING_DATASOURCE_USERNAME: alper
       SPRING_DATASOURCE_PASSWORD: alper123
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
@@ -46,7 +44,7 @@ services:
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
-      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_HOST: rabbit-mq
       SPRING_RABBITMQ_PORT: 5672
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -54,5 +52,6 @@ services:
       - mysql
       - redis
       - rabbitmq
+
 volumes:
   mysql_data:

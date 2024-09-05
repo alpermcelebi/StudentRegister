@@ -33,25 +33,30 @@ public class StudentService {
         this.notificationService = notificationService;
     }
 
-
     @CachePut(value = "students", key = "#student.id")
     public Student addStudent(Student student) {
-
-        return studentRepo.save(student);
+        try {
+            System.out.println("Saving student: " + student.toString());
+            return studentRepo.save(student);
+        } catch (Exception e) {
+            System.out.println("Error saving student: " + e.getMessage());
+            throw e;
+        }
     }
 
     @Cacheable(value = "students", key = "#id")
     public Student getStudentById(Long id) {
-        return studentRepo.findById(id).orElseThrow(() -> new EntityNotFoundException("Student with" + id + "not found"));
+        return studentRepo.findById(id).orElseThrow(() -> new EntityNotFoundException("Student with " + id + " not found"));
     }
 
     public boolean studentExists(Long id){
         return studentRepo.existsById(id);
     }
 
+    @Cacheable(value = "coursesByStudent", key = "#studentId")
     public List<Course> getCoursesByStudentId(Long studentId) {
         Student student = studentRepo.findById(studentId)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Student not found"));
         return student.getCourses();
     }
 
@@ -60,14 +65,15 @@ public class StudentService {
     }
 
     @CachePut(value = "students", key = "#id")
-	public Student updateStudent(Long id, Student updatedStudent) {
-		Student student = getStudentById(id);
-		student.setId(id);
-		student.setFirstName(updatedStudent.getFirstName());
-		student.setLastName(updatedStudent.getLastName());
-		student.setYear(updatedStudent.getYear());
-		return student;
-	}
+    public Student updateStudent(Long id, Student updatedStudent) {
+        Student student = getStudentById(id);
+
+        student.setFirstName(updatedStudent.getFirstName());
+        student.setLastName(updatedStudent.getLastName());
+        student.setYear(updatedStudent.getYear());
+
+        return studentRepo.save(student);
+    }
 
     @CacheEvict(value = "students", key = "#id")
     public boolean deleteStudent(Long id) {
@@ -122,13 +128,10 @@ public class StudentService {
     }
 
     @RabbitListener(queues = "firstStepQueue")
-    public void deregisterMessage(String message){
-        System.out.println(message);
+    public void registerMessage(String message){
+        System.out.println(message + "!");
     }
 
-    @RabbitListener(queues = "firstStepQueue")
-    public void registerMessage(String message){
-        System.out.println(message);
-    }
+
 
 }

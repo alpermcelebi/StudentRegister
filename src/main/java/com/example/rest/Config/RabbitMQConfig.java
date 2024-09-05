@@ -11,11 +11,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
-    String exchange = "default";
+    String exchangeName = "default";
 
     @Bean
     DirectExchange exchange() {
-        return new DirectExchange(exchange);
+        return new DirectExchange(exchangeName);
     }
 
     @Bean

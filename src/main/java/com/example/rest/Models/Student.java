@@ -2,11 +2,18 @@ package com.example.rest.Models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+
+import java.io.Serial;
 import java.util.List;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "student")
-public class Student {
+public class Student implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

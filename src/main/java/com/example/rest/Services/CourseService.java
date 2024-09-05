@@ -21,11 +21,11 @@ public class CourseService {
 
     private final StudentRepo studentRepo;
 
-    @Autowired
     public CourseService(CourseRepo courseRepo, StudentRepo studentRepo) {
         this.courseRepo = courseRepo;
         this.studentRepo = studentRepo;
     }
+
 
     @CachePut(value = "courses", key = "#course.id")
     public Course addCourse(Course course) {
@@ -34,34 +34,32 @@ public class CourseService {
 
     @Cacheable(value = "courses", key = "#id")
     public Course getCourseById(Long id) {
-        return courseRepo.findById(id).orElse(null);
+        return courseRepo.findById(id).orElseThrow(() -> new EntityNotFoundException("Course with " + id + " not found"));
     }
 
+    @Cacheable(value = "studentsByCourse", key = "#courseId")
     public List<Student> getStudentsByCourseId(Long courseId) {
         Course course = courseRepo.findById(courseId)
                 .orElseThrow(() -> new EntityNotFoundException("Course not found with id: " + courseId));
 
         return course.getStudents();
     }
-
     public List<Course> getAllCourses() {
         return courseRepo.findAll();
     }
+    public void deleteCache(){}
 
-    @CachePut(value = "courses", key = "#id")
+    @CachePut()
     public Course updateCourse(Long id, Course updatedCourse) {
         Course course = getCourseById(id);
-        course.setId(id);
         course.setName(updatedCourse.getName());
         course.setWeeklyHours(updatedCourse.getWeeklyHours());
         return courseRepo.save(course);
     }
 
-    @CacheEvict(value = "courses", key = "#courseId")
+    @CachePut(value = "courses", key = "#id")
     public void deleteCourse(Long courseId) {
-        Course course = courseRepo.findById(courseId)
-                .orElseThrow(() -> new EntityNotFoundException("Course not found with id: " + courseId));
-
+        Course course = getCourseById(courseId);
         List<Student> students = studentRepo.findByCourses_Id(courseId);
 
         for (Student student : students) {
