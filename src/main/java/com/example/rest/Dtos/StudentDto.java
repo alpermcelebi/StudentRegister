@@ -1,4 +1,4 @@
 package com.example.rest.Dtos;
 
-public class StudentDto {
+public record StudentDto(String firstName, String lastName, int year) {
 }

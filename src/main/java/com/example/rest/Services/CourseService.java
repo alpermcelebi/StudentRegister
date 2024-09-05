@@ -49,7 +49,7 @@ public class CourseService {
     }
     public void deleteCache(){}
 
-    @CachePut()
+    @CachePut(value = "courses", key = "#id")
     public Course updateCourse(Long id, Course updatedCourse) {
         Course course = getCourseById(id);
         course.setName(updatedCourse.getName());
@@ -57,7 +57,7 @@ public class CourseService {
         return courseRepo.save(course);
     }
 
-    @CachePut(value = "courses", key = "#id")
+    @CacheEvict(value = "courses", key = "#courseId")
     public void deleteCourse(Long courseId) {
         Course course = getCourseById(courseId);
         List<Student> students = studentRepo.findByCourses_Id(courseId);

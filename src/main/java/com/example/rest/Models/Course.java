@@ -9,7 +9,8 @@ import java.util.List;
 @Table(name = "course")
 public class Course implements Serializable {
 
-
+    @Serial
+    private static final long serialVersionUID = 1L;
     // Primary key
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,6 +32,10 @@ public class Course implements Serializable {
         this.id = id;
         this.name = name;
         this.weeklyHours = weeklyHours;
+    }
+
+    // For DTO mapping
+    public Course(String name, int weeklyHours) {
     }
 
     // Getters and Setters

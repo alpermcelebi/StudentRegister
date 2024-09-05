@@ -1,5 +1,8 @@
 package com.example.rest.Controller;
 
+import com.example.rest.Dtos.CourseDto;
+import com.example.rest.Dtos.StudentDto;
+import com.example.rest.Mappers.StudentMapper;
 import com.example.rest.Models.Course;
 import com.example.rest.Models.ErrorResponse;
 import com.example.rest.Models.Student;
@@ -12,27 +15,31 @@ import org.springframework.web.bind.annotation.*;
 
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/students")
 public class StudentController {
 
     private final StudentService studentService;
+    private final StudentMapper studentMapper;
 
     @Autowired
-    public StudentController(StudentService studentService) {
+    public StudentController(StudentService studentService, StudentMapper studentMapper) {
         this.studentService = studentService;
+        this.studentMapper = studentMapper;
     }
 
     @PostMapping
-    public ResponseEntity<?> createStudent(@RequestBody Student student) {
+    public ResponseEntity<?> createStudent(@RequestBody StudentDto studentDto) {
         try {
+            Student student = studentMapper.toEntity(studentDto);
             Student createdStudent = studentService.addStudent(student);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdStudent);
+            StudentDto createdStudentDto = studentMapper.toDto(createdStudent);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdStudentDto);
         } catch (Exception e) {
             ErrorResponse errorResponse = new ErrorResponse("Failed to create student", HttpStatus.INTERNAL_SERVER_ERROR);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(errorResponse);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
     @PostMapping("/{studentId}/courses/{courseId}")
@@ -78,7 +85,10 @@ public class StudentController {
     public ResponseEntity<?> getCoursesByStudentId(@PathVariable Long studentId) {
         try {
             List<Course> courses = studentService.getCoursesByStudentId(studentId);
-            return ResponseEntity.ok(courses);
+            List<CourseDto> courseDtos = courses.stream()
+                    .map(course -> new CourseDto(course.getName(), course.getWeeklyHours()))
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(courseDtos);
         } catch (EntityNotFoundException e) {
             ErrorResponse errorResponse = new ErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
@@ -93,7 +103,8 @@ public class StudentController {
     public ResponseEntity<?> getStudentById(@PathVariable Long id) {
         try {
             Student student = studentService.getStudentById(id);
-            return ResponseEntity.ok(student);
+            StudentDto studentDto = studentMapper.toDto(student);
+            return ResponseEntity.ok(studentDto);
         } catch (EntityNotFoundException e) {
             ErrorResponse errorResponse = new ErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
@@ -101,15 +112,21 @@ public class StudentController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Student>> getAllStudents(){
-        return ResponseEntity.ok(studentService.getAllStudents());
+    public ResponseEntity<List<StudentDto>> getAllStudents(){
+        List<Student> students = studentService.getAllStudents();
+        List<StudentDto> studentDtos = students.stream()
+                .map(studentMapper::toDto)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(studentDtos);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateStudent(@PathVariable Long id, @RequestBody Student updatedStudent) {
+    public ResponseEntity<?> updateStudent(@PathVariable Long id, @RequestBody StudentDto studentDto) {
         try {
+            Student updatedStudent = studentMapper.toEntity(studentDto);
             Student student = studentService.updateStudent(id, updatedStudent);
-            return ResponseEntity.ok(student);
+            StudentDto updatedStudentDto = studentMapper.toDto(student);
+            return ResponseEntity.ok(updatedStudentDto);
         } catch (EntityNotFoundException e) {
             ErrorResponse errorResponse = new ErrorResponse(e.getMessage(), HttpStatus.NOT_FOUND);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
